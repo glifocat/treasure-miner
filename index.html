@@ -6,42 +6,72 @@
         body { font-family: Arial, sans-serif; }
         button { margin: 5px; padding: 10px; }
         #container { text-align: center; margin-top: 50px; }
+        #achievements, #inventory { margin-top: 20px; }
     </style>
     <script>
         let gold = 0;
         let goldPerClick = 1;
         let goldPerSecond = 0;
         let prestigeMultiplier = 1;
+        let achievements = {
+            'First Gold': false,
+            '100 Gold': false,
+            '1000 Gold': false
+        };
+        let inventory = {
+            'Pickaxe': 0,
+            'Miner': 0,
+            'Super Pickaxe': 0,
+            'Advanced Miner': 0
+        };
 
         function updateGold() {
             document.getElementById('gold').innerText = gold;
+            checkAchievements();
+        }
+
+        function updateInventory() {
+            document.getElementById('inventory').innerHTML = `
+                <p>Gold: ${gold}</p>
+                <p>Pickaxe: ${inventory['Pickaxe']}</p>
+                <p>Miner: ${inventory['Miner']}</p>
+                <p>Super Pickaxe: ${inventory['Super Pickaxe']}</p>
+                <p>Advanced Miner: ${inventory['Advanced Miner']}</p>
+            `;
         }
 
         function mine() {
             gold += goldPerClick * prestigeMultiplier;
             updateGold();
+            updateInventory();
         }
 
         function buyUpgrade(upgrade) {
             if (upgrade === 'pickaxe' && gold >= 10) {
                 gold -= 10;
                 goldPerClick += 1;
+                inventory['Pickaxe'] += 1;
             } else if (upgrade === 'miner' && gold >= 100) {
                 gold -= 100;
                 goldPerSecond += 1;
+                inventory['Miner'] += 1;
             } else if (upgrade === 'superPickaxe' && gold >= 500) {
                 gold -= 500;
                 goldPerClick += 5;
+                inventory['Super Pickaxe'] += 1;
             } else if (upgrade === 'advancedMiner' && gold >= 1000) {
                 gold -= 1000;
                 goldPerSecond += 5;
+                inventory['Advanced Miner'] += 1;
             }
             updateGold();
+            updateInventory();
         }
 
         function automateIncome() {
             gold += goldPerSecond * prestigeMultiplier;
             updateGold();
+            updateInventory();
         }
 
         function prestige() {
@@ -50,11 +80,73 @@
                 gold = 0;
                 goldPerClick = 1;
                 goldPerSecond = 0;
+                inventory = {
+                    'Pickaxe': 0,
+                    'Miner': 0,
+                    'Super Pickaxe': 0,
+                    'Advanced Miner': 0
+                };
                 updateGold();
+                updateInventory();
             }
         }
 
+        function checkAchievements() {
+            if (gold >= 1 && !achievements['First Gold']) {
+                achievements['First Gold'] = true;
+                displayAchievement('First Gold');
+            }
+            if (gold >= 100 && !achievements['100 Gold']) {
+                achievements['100 Gold'] = true;
+                displayAchievement('100 Gold');
+            }
+            if (gold >= 1000 && !achievements['1000 Gold']) {
+                achievements['1000 Gold'] = true;
+                displayAchievement('1000 Gold');
+            }
+        }
+
+        function displayAchievement(name) {
+            let achievementList = document.getElementById('achievements');
+            let achievementItem = document.createElement('li');
+            achievementItem.textContent = name;
+            achievementList.appendChild(achievementItem);
+        }
+
+        function saveGame() {
+            let gameData = {
+                gold: gold,
+                goldPerClick: goldPerClick,
+                goldPerSecond: goldPerSecond,
+                prestigeMultiplier: prestigeMultiplier,
+                achievements: achievements,
+                inventory: inventory
+            };
+            localStorage.setItem('treasureMinerSave', JSON.stringify(gameData));
+        }
+
+        function loadGame() {
+            let savedData = JSON.parse(localStorage.getItem('treasureMinerSave'));
+            if (savedData) {
+                gold = savedData.gold;
+                goldPerClick = savedData.goldPerClick;
+                goldPerSecond = savedData.goldPerSecond;
+                prestigeMultiplier = savedData.prestigeMultiplier;
+                achievements = savedData.achievements;
+                inventory = savedData.inventory;
+                updateGold();
+                updateInventory();
+                for (let achievement in achievements) {
+                    if (achievements[achievement]) {
+                        displayAchievement(achievement);
+                    }
+                }
+            }
+        }
+
+        window.onload = loadGame;
         setInterval(automateIncome, 1000);
+        window.onbeforeunload = saveGame;
     </script>
 </head>
 <body>
@@ -67,6 +159,16 @@
         <button onclick="buyUpgrade('superPickaxe')">Buy Super Pickaxe (500 gold)</button>
         <button onclick="buyUpgrade('advancedMiner')">Buy Advanced Miner (1000 gold)</button>
         <button onclick="prestige()">Prestige (10,000 gold)</button>
+        <h2>Achievements</h2>
+        <ul id="achievements"></ul>
+        <h2>Inventory</h2>
+        <div id="inventory">
+            <p>Gold: 0</p>
+            <p>Pickaxe: 0</p>
+            <p>Miner: 0</p>
+            <p>Super Pickaxe: 0</p>
+            <p>Advanced Miner: 0</p>
+        </div>
     </div>
 </body>
 </html>
