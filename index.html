@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Treasure Miner</title>
+    <script>
+        let gold = 0;
+        let goldPerClick = 1;
+        let goldPerSecond = 0;
+
+        function mine() {
+            gold += goldPerClick;
+            document.getElementById('gold').innerText = gold;
+        }
+
+        function buyUpgrade(upgrade) {
+            if (upgrade === 'pickaxe' && gold >= 10) {
+                gold -= 10;
+                goldPerClick += 1;
+            } else if (upgrade === 'miner' && gold >= 100) {
+                gold -= 100;
+                goldPerSecond += 1;
+            }
+            document.getElementById('gold').innerText = gold;
+        }
+
+        function automateIncome() {
+            gold += goldPerSecond;
+            document.getElementById('gold').innerText = gold;
+        }
+
+        setInterval(automateIncome, 1000);
+    </script>
+</head>
+<body>
+    <h1>Treasure Miner</h1>
+    <p>Gold: <span id="gold">0</span></p>
+    <button onclick="mine()">Mine Gold</button>
+    <button onclick="buyUpgrade('pickaxe')">Buy Pickaxe (10 gold)</button>
+    <button onclick="buyUpgrade('miner')">Buy Miner (100 gold)</button>
+</body>
+</html>
